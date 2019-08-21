@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="main" type="engine" name="engine" output="screen"></node>
+    <node pkg="gps_node" type="gps_publisher" name="gps_publisher" output="screen"></node>
+</launch>

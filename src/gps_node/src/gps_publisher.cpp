@@ -7,7 +7,7 @@
 #include <wiringPi.h>
 
 #include <sstream>
-
+#include <iostream>
 
 int main(int argc, char **argv)
 {
@@ -29,11 +29,12 @@ int main(int argc, char **argv)
   {
     fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
   }
-  REINIT:if ((fd = serialOpen ("/dev/ttyAMA0", 9600)) < 0)
+  REINIT:if ((fd = serialOpen ("/dev/ttyS0", 9600)) < 0)
   {
    fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
   }
 
+  std::string data;
   int input = 0;
   while (ros::ok())
   {
@@ -41,10 +42,22 @@ int main(int argc, char **argv)
     {
       input = serialGetchar (fd);
 
+      data.push_back(input);
 
-      //ROS_DEBUG(input);
+      // Parsers parsers(node);
 
-      //chatter_pub.publish(gps_data);
+      // parsers.parse(fix);
+
+      //std::cout << data;
+      data = "";
+
+
+      // gps_data.gps_sats = round(NazaDecoder.getNumSat());
+      // gps_data.lat = NazaDecoder.getLat();
+      // gps_data.lon = NazaDecoder.getLon();
+      // gps_data.heading = round(NazaDecoder.getHeadingNc());
+      // gps_data.alt = NazaDecoder.getGpsAlt();
+      // chatter_pub.publish(gps_data);
 
       ros::spinOnce();
       loop_rate.sleep();

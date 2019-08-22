@@ -199,6 +199,8 @@ include_directories(
 
 add_executable(gps_publisher src/gps_publisher.cpp)
 
+add_library(MicroNMEA src/MicroNMEA.cpp)
+
 target_link_libraries(gps_publisher ${catkin_LIBRARIES})
 
 target_link_libraries(gps_publisher "-L/usr/lib/" wiringPi)

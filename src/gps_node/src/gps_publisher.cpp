@@ -3,6 +3,8 @@
 #include "std_msgs/String.h"
 #include "gps_node/gps_raw.h"
 
+#include "MicroNMEA.cpp"
+
 #include <wiringSerial.h>
 #include <wiringPi.h>
 
@@ -34,7 +36,16 @@ int main(int argc, char **argv)
    fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
   }
 
+  //MicroNMEA library structures
+  char nmeaBuffer[100];
+  MicroNMEA nmea(nmeaBuffer, sizeof(nmeaBuffer));
+
   std::string data;
+  std::string NavSystem;
+  int NumSatellites;
+  long lat;
+  long lon;
+
   int input = 0;
   while (ros::ok())
   {
@@ -42,23 +53,34 @@ int main(int argc, char **argv)
     {
       input = serialGetchar (fd);
 
+      nmea.process(input);
+
       data.push_back(input);
 
-      // Parsers parsers(node);
+      NavSystem = nmea.getNavSystem();
+      NumSatellites = nmea.getNumSatellites();
 
-      // parsers.parse(fix);
+      lat = nmea.getLatitude();
+      lon = nmea.getLongitude();
+
+      std::cout << "NavSystem: " << NavSystem << ", ";
+
+      std::cout << "NumSatellites: " << NumSatellites << ", ";
+
+
+      std::cout << "Lat: " << lat << ", ";
+
+      std::cout << "Lon: " << lon << std::endl;
 
       //std::cout << data;
+
+      gps_data.num_sats = NumSatellites;
+      gps_data.lat = lat;
+      gps_data.lon = lon;
+
+      chatter_pub.publish(gps_data);
+
       data = "";
-
-
-      // gps_data.gps_sats = round(NazaDecoder.getNumSat());
-      // gps_data.lat = NazaDecoder.getLat();
-      // gps_data.lon = NazaDecoder.getLon();
-      // gps_data.heading = round(NazaDecoder.getHeadingNc());
-      // gps_data.alt = NazaDecoder.getGpsAlt();
-      // chatter_pub.publish(gps_data);
-
       ros::spinOnce();
       loop_rate.sleep();
       if(input==-1){

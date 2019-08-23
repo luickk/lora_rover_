@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <limits>
 
 int main(int argc, char **argv)
 {
@@ -37,7 +38,7 @@ int main(int argc, char **argv)
   }
 
   //MicroNMEA library structures
-  char nmeaBuffer[100];
+  char nmeaBuffer[200];
   MicroNMEA nmea(nmeaBuffer, sizeof(nmeaBuffer));
 
   std::string data;
@@ -55,22 +56,23 @@ int main(int argc, char **argv)
 
       nmea.process(input);
 
-      data.push_back(input);
+      //data.push_back(input);
 
-      NavSystem = nmea.getNavSystem();
       NumSatellites = nmea.getNumSatellites();
 
       lat = nmea.getLatitude();
       lon = nmea.getLongitude();
 
-      std::cout << "NavSystem: " << NavSystem << ", ";
 
-      std::cout << "NumSatellites: " << NumSatellites << ", ";
+      if (lat > 1 && lon > 1)
+      {
+        lat = stoi(to_string(lat).insert(2, "."));
+        lon = stoi(to_string(lon).insert(1, "."));
+      }
 
-
-      std::cout << "Lat: " << lat << ", ";
-
-      std::cout << "Lon: " << lon << std::endl;
+      //std::cout << "NumSatellites: " << NumSatellites << ", ";
+      //std::cout << "Lat: " << lat << ", ";
+      //std::cout << "Lon: " << lon << std::endl;
 
       //std::cout << data;
 
@@ -80,7 +82,7 @@ int main(int argc, char **argv)
 
       chatter_pub.publish(gps_data);
 
-      data = "";
+      //data = "";
       ros::spinOnce();
       loop_rate.sleep();
       if(input==-1){

@@ -1,0 +1,5 @@
+string side
+string dir
+int64 throttle
+---
+int64 status

@@ -1,4 +1,0 @@
-<launch>
-    <node pkg="main" type="main_node" name="engine" output="screen">
-    </node>
-</launch>

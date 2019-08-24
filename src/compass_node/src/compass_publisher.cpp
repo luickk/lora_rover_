@@ -27,17 +27,13 @@ int main(int argc, char **argv)
 
   fd = wiringPiI2CSetup(0x1E);
 
-  std::cout << "Init result: "<< fd << std::endl;
-
-  // for(int i = 0; i < 0x0000ffff; i++)
-  // {
-  // }
+  // std::cout << "Init result: "<< fd << std::endl;
 
   while (ros::ok())
   {
     result = wiringPiI2CRead (fd);
 
-    std::cout << result << std::endl;
+    //std::cout << result << std::endl;
 
     //compass_data.dir = result;
 
@@ -47,7 +43,7 @@ int main(int argc, char **argv)
     loop_rate.sleep();
     if(result == -1)
     {
-      std::cout << "Error.  Errno is: " << errno << std::endl;
+      //std::cout << "Error.  Errno is: " << errno << std::endl;
     }
   }
   return 0;

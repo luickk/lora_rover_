@@ -33,50 +33,50 @@ bool move_side(driving_node::move_side::Request  &req, driving_node::move_side::
   softPwmCreate(pwm_m1,0,100);
   softPwmCreate(pwm_m2,0,100);
 
-  if(req.side=="right")
+  if(req.side=="left")
   {
     if(dir=="forward"){
       softPwmWrite(pwm_m2, throttle);
       digitalWrite(d2_m2, 0);
       digitalWrite(d1_m2, 1);
-      ROS_INFO("turning right; forward");
+      ROS_INFO("turning left; forward");
     } else if(dir=="backward"){
       softPwmWrite(pwm_m2, throttle);
       digitalWrite(d2_m2, 1);
       digitalWrite(d1_m2, 0);
-      ROS_INFO("turning right; backward");
+      ROS_INFO("turning left; backward");
     }
   }
-  else if(req.side=="left")
+  else if(req.side=="right")
   {
     if(dir=="forward"){
       softPwmWrite(pwm_m1, throttle);
-      digitalWrite(d2_m1, 0);
-      digitalWrite(d1_m1, 1);
-      ROS_INFO("turning left; forward");
-    } else if(dir=="backward"){
-      softPwmWrite(pwm_m1, throttle);
       digitalWrite(d2_m1, 1);
       digitalWrite(d1_m1, 0);
-      ROS_INFO("turning left; backward");
+      ROS_INFO("turning right; forward");
+    } else if(dir=="backward"){
+      softPwmWrite(pwm_m1, throttle);
+      digitalWrite(d2_m1, 0);
+      digitalWrite(d1_m1, 1);
+      ROS_INFO("turning right; backward");
     }
   }
   else if(req.side=="both")
   {
     if(dir=="forward"){
       softPwmWrite(pwm_m1, throttle);
-      digitalWrite(d2_m1, 0);
-      digitalWrite(pwm_m1, 1);
+      digitalWrite(d2_m1, 1);
+      digitalWrite(d1_m1, 0);
 
       softPwmWrite(pwm_m2, throttle);
       digitalWrite(d2_m2, 0);
-      digitalWrite(pwm_m2, 1);
-      ROS_INFO("turning left; forward");
+      digitalWrite(d1_m2, 1);
+      ROS_INFO("turning both; forward");
     } else if(dir=="backward"){
       ROS_INFO("turning both; backward");
       softPwmWrite(pwm_m1, throttle);
-      digitalWrite(d2_m1, 1);
-      digitalWrite(d1_m1, 0);
+      digitalWrite(d2_m1, 0);
+      digitalWrite(d1_m1, 1);
 
       softPwmWrite(pwm_m2, throttle);
       digitalWrite(d2_m2, 1);

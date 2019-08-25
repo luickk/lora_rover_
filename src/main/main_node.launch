@@ -1,6 +1,0 @@
-<launch>
-    <node pkg="main" type="main_node" name="main_node" output="screen"></node>
-    <node pkg="gps_node" type="gps_publisher" name="gps_publisher" output="screen"></node>
-    <node pkg="compass_node" type="compass_publisher" name="compass_publisher" output="screen"></node>
-    <node pkg="driving_node" type="driving_node" name="driving_node" output="screen"></node>
-</launch>

@@ -3,6 +3,7 @@
 #include "std_msgs/String.h"
 #include "gps_node/gps_raw.h"
 
+
 #include "MicroNMEA.cpp"
 
 #include <wiringSerial.h>
@@ -25,8 +26,6 @@ int main(int argc, char **argv)
   ros::Publisher chatter_pub = n.advertise<gps_node::gps_raw>("gps_raw", 1);
 
   ros::Rate loop_rate(1000);
-
-
 
 	if (wiringPiSetup () == -1)
   {
@@ -90,5 +89,8 @@ int main(int argc, char **argv)
       }
     }
   }
+
+  ros::spin();
+
   return 0;
 }

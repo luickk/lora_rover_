@@ -46,5 +46,7 @@ int main(int argc, char **argv)
       //std::cout << "Error.  Errno is: " << errno << std::endl;
     }
   }
+  ros::spin();
+
   return 0;
 }

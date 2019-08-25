@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <wiringPi.h>
+#include <softPwm.h>
 
 #include "driving_node/move_side.h"
 
@@ -17,44 +18,70 @@ int pwm_m2 = 29;
 
 bool move_side(driving_node::move_side::Request  &req, driving_node::move_side::Response &res)
 {
+  ROS_INFO("service called srv init");
   int throttle = req.throttle;
   std::string dir = req.dir;
+
+  wiringPiSetup();
 
   pinMode(d1_m1,OUTPUT);
   pinMode(d2_m1,OUTPUT);
 
   pinMode(d1_m2,OUTPUT);
-  pinMode(d2_m2,OUTPUT);
-  pinMode(pwm_m2,OUTPUT);
+  pinMode(d2_m2,OUTPUT);;
 
-  // softPwmCreate(pwm_m1,0,50);
-  // softPwmCreate(pwm_m2,0,50);
+  softPwmCreate(pwm_m1,0,100);
+  softPwmCreate(pwm_m2,0,100);
 
   if(req.side=="right")
   {
-    pwmWrite(d1_m2, 50);
-    digitalWrite(d2_m2, 1);
-    digitalWrite(pwm_m2, 0);
-    std::cout << "turning right" << std::endl;
+    if(dir=="forward"){
+      softPwmWrite(pwm_m2, throttle);
+      digitalWrite(d2_m2, 0);
+      digitalWrite(d1_m2, 1);
+      ROS_INFO("turning right; forward");
+    } else if(dir=="backward"){
+      softPwmWrite(pwm_m2, throttle);
+      digitalWrite(d2_m2, 1);
+      digitalWrite(d1_m2, 0);
+      ROS_INFO("turning right; backward");
+    }
   }
   else if(req.side=="left")
   {
-    pwmWrite(d1_m1, 50);
-    digitalWrite(d2_m1, 1);
-    digitalWrite(pwm_m1, 0);
-    std::cout << "turning left" << std::endl;
+    if(dir=="forward"){
+      softPwmWrite(pwm_m1, throttle);
+      digitalWrite(d2_m1, 0);
+      digitalWrite(d1_m1, 1);
+      ROS_INFO("turning left; forward");
+    } else if(dir=="backward"){
+      softPwmWrite(pwm_m1, throttle);
+      digitalWrite(d2_m1, 1);
+      digitalWrite(d1_m1, 0);
+      ROS_INFO("turning left; backward");
+    }
   }
   else if(req.side=="both")
   {
-    std::cout << "turning both" << std::endl;
-    pwmWrite(d1_m1, 50);
-    digitalWrite(d2_m1, 1);
-    digitalWrite(pwm_m1, 0);
+    if(dir=="forward"){
+      softPwmWrite(pwm_m1, throttle);
+      digitalWrite(d2_m1, 0);
+      digitalWrite(pwm_m1, 1);
 
-    pwmWrite(d1_m2, 50);
-    digitalWrite(d2_m2, 1);
-    digitalWrite(pwm_m2, 0);
+      softPwmWrite(pwm_m2, throttle);
+      digitalWrite(d2_m2, 0);
+      digitalWrite(pwm_m2, 1);
+      ROS_INFO("turning left; forward");
+    } else if(dir=="backward"){
+      ROS_INFO("turning both; backward");
+      softPwmWrite(pwm_m1, throttle);
+      digitalWrite(d2_m1, 1);
+      digitalWrite(d1_m1, 0);
 
+      softPwmWrite(pwm_m2, throttle);
+      digitalWrite(d2_m2, 1);
+      digitalWrite(d1_m2, 0);
+    }
   }
   res.status = 1;
   return true;
@@ -64,6 +91,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "Driving Node");
   ros::NodeHandle n;
+  ros::Rate loop_rate(50);
 
   ros::ServiceServer service = n.advertiseService("move_side", move_side);
 

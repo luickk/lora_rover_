@@ -115,6 +115,9 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
 
 
     // TODO | CALL TURN_TO
+    gps_nav_node::turn_to turn;
+    turn.request.dir=final_heading;
+    if (ros::service::call("move_side", turn)){}
 
     double distance_to_dest;
     distance_to_dest = calc_distance(_ftod(live_lat), _ftod(live_lon), _ftod(to_lat), _ftod(to_lon));
@@ -145,6 +148,7 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
 
 bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Response &res)
 {
+	ROS_INFO("Turning to %f", req.dir);
   return true;
 }
 

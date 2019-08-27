@@ -68,7 +68,9 @@ int main(int argc, char **argv)
   printf("Tpkt: %f;\t", modem.tx.data.Tpkt);
   printf("payloadSymbNb: %u\n", modem.tx.data.payloadSymbNb);
 
-  ros::spin();
+  while(ros::ok()){
+    
+  }
 
   return 0;
 }

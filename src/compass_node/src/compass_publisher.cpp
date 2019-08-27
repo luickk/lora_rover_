@@ -4,6 +4,8 @@
 
 #include "compass_node/compass_raw.h"
 
+#include "qmc5883l.cpp"
+
 #include <wiringPiI2C.h>
 #include <wiringPi.h>
 
@@ -16,36 +18,27 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "compass_publisher");
 
   ros::NodeHandle n;
+  ros::Rate rate(1);
 
   compass_node::compass_raw compass_data;
 
   ros::Publisher chatter_pub = n.advertise<compass_node::compass_raw>("compass_raw", 1);
 
-  ros::Rate loop_rate(1000);
+  RoverQMC5883L compass;
 
-  int fd, result;
+  compass_node::compass_raw comp_raw;
 
-  fd = wiringPiI2CSetup(0x1E);
-
-  // std::cout << "Init result: "<< fd << std::endl;
-
+  compass.initialize();
+  float heading;
   while (ros::ok())
   {
-    result = wiringPiI2CRead (fd);
-
-    //std::cout << result << std::endl;
-
-    //compass_data.dir = result;
-
-    //chatter_pub.publish(compass_data);
-
-    ros::spinOnce();
-    loop_rate.sleep();
-    if(result == -1)
-    {
-      //std::cout << "Error.  Errno is: " << errno << std::endl;
-    }
+    heading = compass.read();
+    comp_raw.dir=heading;
+    chatter_pub.publish(comp_raw);
+    //ROS_INFO("compass: %f", heading);
+    rate.sleep();
   }
+
   ros::spin();
 
   return 0;

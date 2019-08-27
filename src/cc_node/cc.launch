@@ -4,4 +4,5 @@
   <node pkg="gps_node" type="gps_publisher" name="gps_publisher" output="screen"/>
   <node pkg="cc_node" type="cc" name="cc" output="screen"/>
   <node pkg="gps_nav_node" type="gps_nav" name="gps_nav" output="screen"/>
+  <node pkg="lora_node" type="lora_c" name="lora_c" output="screen"/>
 </launch>

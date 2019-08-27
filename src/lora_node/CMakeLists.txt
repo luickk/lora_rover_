@@ -203,5 +203,9 @@ add_executable(lora_c src/lora_com.cpp)
 target_link_libraries(lora_c ${catkin_LIBRARIES})
 
 target_link_libraries(lora_c "-L/usr/lib/" wiringPi)
+target_link_libraries(lora_c "-L/usr/lib/" pigpio)
+target_link_libraries(lora_c "-L/usr/lib/" rt)
+target_link_libraries(lora_c "-L/usr/lib/" pthread)
+target_link_libraries(lora_c "-L/usr/lib/" m)
 
 add_library(lor src/lor.c)

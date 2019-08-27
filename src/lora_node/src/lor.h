@@ -8,6 +8,8 @@
 #include <sys/time.h>
 #include <stdint.h>
 
+#include <stdbool.h>
+
 #define REG_FIFO 0x00
 #define REG_OP_MODE 0x01
 #define REG_FR_MSB 0x06
@@ -130,18 +132,18 @@ typedef struct{
     unsigned char resetGpioN;//raspberry GPIO pin connected to RESET pin of LoRa chip
     unsigned char dio0GpioN;//raspberry GPIO pin connected to DIO0 pin of LoRa chip to detect TX and Rx done events.
     unsigned int preambleLen;
-    _Bool lowDataRateOptimize;//Dont touch it sets automatically
+    bool lowDataRateOptimize;//Dont touch it sets automatically
     OutputPower outPower;
     PowerAmplifireOutputPin powerOutPin;//This chips has to outputs for signal "High power" and regular.
     int curRSSI;//Current ethereum RSSI
     unsigned char syncWord;
     LnaGain lnaGain;
-    _Bool lnaBoost;//On/Off LNA boost
-    _Bool AGC;// On/Off AGC. If AGC is on, LNAGain not used
+    bool lnaBoost;//On/Off LNA boost
+    bool AGC;// On/Off AGC. If AGC is on, LNAGain not used
     unsigned char OCP;//Over Current Protection. 0 to turn OFF. Else reduces current from 45mA to 240mA
-    _Bool implicitHeader;// 1 - implicit header. 0 - Explicit header.
+    bool implicitHeader;// 1 - implicit header. 0 - Explicit header.
     unsigned char payloadLen;//Payload len that used in implicit mode. In Explicit header mode not used.
-    _Bool CRC;//1 - add CRC data and checking. 0 - remove CRC data and checking
+    bool CRC;//1 - add CRC data and checking. 0 - remove CRC data and checking
 } Modem_cfg;
 
 typedef struct{
@@ -170,7 +172,7 @@ typedef struct{
     struct timeval last_time;
     float SNR;
     int RSSI;
-    _Bool CRC;
+    bool CRC;
     void *userPtr;//user pointer passing to user callback
 } rxData;
 
@@ -196,7 +198,7 @@ int LoRa_begin(LoRa_ctl *modem);
 void LoRa_send(LoRa_ctl *modem);//After sending auto switches to standby mode.
 void LoRa_receive(LoRa_ctl *modem);//Continuous mode. You have to manually stop receiving if you want to. For example you can do it in callback right after catching packet.
 void LoRa_calculate_packet_t(LoRa_ctl *modem);
-_Bool LoRa_check_conn(LoRa_ctl *modem);
+bool LoRa_check_conn(LoRa_ctl *modem);
 void LoRa_end(LoRa_ctl *modem);
 void LoRa_stop_receive(LoRa_ctl *modem);
 void LoRa_sleep(LoRa_ctl *modem);
@@ -240,8 +242,8 @@ void lora_get_rssi_pkt(LoRa_ctl *modem);
 void lora_get_rssi_cur(LoRa_ctl *modem);
 void lora_get_snr(LoRa_ctl *modem);
 void lora_set_preamble(int spid, unsigned int preambleLen);
-void lora_set_agc(int spid, _Bool AGC );
-void lora_set_lna(int spid, LnaGain lnaGain, _Bool lnaBoost);
+void lora_set_agc(int spid, bool AGC );
+void lora_set_lna(int spid, LnaGain lnaGain, bool lnaBoost);
 void lora_set_ocp(int spid, unsigned char OCP);
 void lora_set_implicit_header(int spid);
 void lora_set_explicit_header(int spid);

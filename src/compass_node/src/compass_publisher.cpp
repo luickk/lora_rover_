@@ -12,6 +12,11 @@
 #include <sstream>
 #include <iostream>
 #include <limits>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
 
 int main(int argc, char **argv)
 {
@@ -23,20 +28,27 @@ int main(int argc, char **argv)
   compass_node::compass_raw compass_data;
 
   ros::Publisher chatter_pub = n.advertise<compass_node::compass_raw>("compass_raw", 1);
+  // python /home/pi/lora_rover/src/compass_node/src/qmc5883l.py
+  // chatter_pub.publish(comp_raw);
 
-  RoverQMC5883L compass;
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("python /home/pi/lora_rover/src/compass_node/src/qmc5883l.py", "r"), pclose);
+
+  if (!pipe) {
+      throw std::runtime_error("popen() failed!");
+  }
 
   compass_node::compass_raw comp_raw;
 
-  compass.initialize();
-  float heading;
-  while (ros::ok())
-  {
-    heading = compass.read();
-    comp_raw.dir=heading;
-    chatter_pub.publish(comp_raw);
-    //ROS_INFO("compass: %f", heading);
-    rate.sleep();
+  double heading;
+
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+      result += buffer.data();
+      heading = std::stod(result);
+      //std::cout << heading << std::endl;
+      comp_raw.dir = heading;
+      chatter_pub.publish(comp_raw);
   }
 
   ros::spin();

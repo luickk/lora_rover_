@@ -18,6 +18,8 @@
 #include <string>
 #include <array>
 
+#include "process.h"
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "compass_publisher");
@@ -31,24 +33,17 @@ int main(int argc, char **argv)
   // python /home/pi/lora_rover/src/compass_node/src/qmc5883l.py
   // chatter_pub.publish(comp_raw);
 
-  std::array<char, 128> buffer;
-  std::string result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("python /home/pi/lora_rover/src/compass_node/src/qmc5883l.py", "r"), pclose);
+  while(ros::ok())
+  {
+    // requires py-qmc5883l lib: https://github.com/RigacciOrg/py-qmc5883l
+    procxx::process ping( "python", "/home/pi/lora_rover/src/compass_node/src/qmc5883l.py");
+    ping.exec();
 
-  if (!pipe) {
-      throw std::runtime_error("popen() failed!");
-  }
-
-  compass_node::compass_raw comp_raw;
-
-  double heading;
-
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-      result += buffer.data();
-      heading = std::stod(result);
-      //std::cout << heading << std::endl;
-      comp_raw.dir = heading;
-      chatter_pub.publish(comp_raw);
+    std::string line;
+    std::getline( ping.output(), line);
+    // std::cout << line << std::endl;
+    compass_data.dir = std::stoi(line);
+    chatter_pub.publish(compass_data);
   }
 
   ros::spin();

@@ -200,6 +200,8 @@ include_directories(
 
 add_executable(compass_publisher src/compass_publisher.cpp)
 
+# add_library(process src/process.h)
+
 add_library(qmc5883l src/qmc5883l.cpp)
 
 target_link_libraries(compass_publisher ${catkin_LIBRARIES})

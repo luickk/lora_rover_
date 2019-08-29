@@ -10,6 +10,7 @@
 #include "gps_nav_node/nav_to.h"
 #include "gps_node/gps_raw.h"
 #include "driving_node/move_side.h"
+#include "compass_node/compass_raw.h"
 
 double calc_distance(double lat1, double lon1, double lat2, double lon2) {
 
@@ -55,6 +56,16 @@ gps_node::gps_raw get_latest_gps_data()
   return latest_gps_data;
 }
 
+/*
+  Local function to get compass dir
+*/
+int get_latest_dir()
+{
+  compass_node::compass_raw latest_dir = *ros::topic::waitForMessage<compass_node::compass_raw>("/compass_raw", ros::Duration(10));
+
+  return latest_dir.dir;
+}
+
 // Returns true if x is in range [low..high], else false
 bool in_Range(unsigned low, unsigned high, unsigned x)
 {
@@ -76,9 +87,16 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
 
   gps_node::gps_raw latest_gps_data = get_latest_gps_data();
 
-  long live_lat = latest_gps_data.lat;
+  // long live_lat = latest_gps_data.lat;
 
-  long live_lon = latest_gps_data.lon;
+  // long live_lon = latest_gps_data.lon;
+
+	// debug:
+
+	long live_lat = 49.466577;
+
+	long live_lon = 10.967922;
+
 
   if(to_lat != 0 && to_lon != 0 && live_lat != 0 && live_lon != 0)
   {
@@ -131,7 +149,7 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
     move.request.throttle=50;
     if (ros::service::call("move_side", move)){}
 
-    while(1)
+    while(ros::ok())
     {
       latest_gps_data_sync = get_latest_gps_data();
       distance_to_dest = calc_distance(_ftod(latest_gps_data_sync.lat), _ftod(latest_gps_data_sync.lon), _ftod(to_lat), _ftod(to_lon));
@@ -149,6 +167,28 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
 bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Response &res)
 {
 	ROS_INFO("Turning to %f", req.dir);
+	int live_heading;
+
+	int exec_deg = req.dir;
+	driving_node::move_side move;
+	move.request.dir="forward";
+	move.request.side="left";
+	move.request.throttle=50;
+	if (ros::service::call("move_side", move)){}
+	move.request.dir="backward";
+	move.request.side="right";
+	if (ros::service::call("move_side", move)){}
+
+	while(ros::ok()){
+		live_heading = get_latest_dir();
+		ROS_INFO("%d", live_heading);
+		if(in_Range(exec_deg-20,exec_deg+20, (uint)live_heading)){
+			move.request.side="both";
+			move.request.throttle=0;
+			if (ros::service::call("move_side", move)){}
+			break;
+		}
+	}
   return true;
 }
 

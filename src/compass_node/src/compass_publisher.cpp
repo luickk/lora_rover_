@@ -4,8 +4,6 @@
 
 #include "compass_node/compass_raw.h"
 
-#include "qmc5883l.cpp"
-
 #include <wiringPiI2C.h>
 #include <wiringPi.h>
 

@@ -5,6 +5,7 @@
 #include <wiringPi.h>
 #include <softPwm.h>
 #include <stdio.h>
+#include <cmath>
 
 #include "gps_nav_node/turn_to.h"
 #include "gps_nav_node/nav_to.h"
@@ -12,7 +13,16 @@
 #include "driving_node/move_side.h"
 #include "compass_node/compass_raw.h"
 
-double calc_distance(double lat1, double lon1, double lat2, double lon2) {
+# define PI		3.14159265358979323846	/* pi */
+
+float toRad(float degree) {
+    return degree/180 * PI;
+}
+float toDeg(float radian) {
+    return radian * 180/PI;
+}
+
+double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
 
 	// Convert degrees to radians
 	lat1 = lat1 * M_PI / 180.0;
@@ -79,70 +89,65 @@ double _ftod(float fValue)
     return dValue;
 }
 
+int calc_heading(float lat,float lon,float lat2,float lon2){
+	lat2=(lat2*3.14159)/180;
+	lon2=(lon2*3.14159)/180;
+	lat=(lat*3.14159)/180;
+	lon=(lon*3.14159)/180;
+	float londif=lon2-lon;
+
+	float head=atan2((sin(londif)*cos(lat2)),((cos(lat)*sin(lat2))-(sin(lat)*cos(lat2)*cos(londif)))) ;
+	float finalans=(head*180)/3.14159;
+	float finalans2=0;
+	int final_heading;
+	if(finalans<=0)
+	{
+		finalans2=finalans+360;
+		final_heading= finalans2;
+	} else {
+		final_heading= finalans;
+	}
+	return final_heading;
+}
+
 bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response &res)
 {
-  long to_lat = req.lat;
-
-  long to_lon = req.lon;
-
   gps_node::gps_raw latest_gps_data = get_latest_gps_data();
 
-  // long live_lat = latest_gps_data.lat;
+  float to_lat = req.lat;
 
-  // long live_lon = latest_gps_data.lon;
+  float to_lon = req.lon;
+
+  // float live_lat = latest_gps_data.lat;
+
+  // float live_lon = latest_gps_data.lon;
 
 	// debug:
 
-	long live_lat = 49.466577;
+	float live_lat = 49.466611;
 
-	long live_lon = 10.967922;
+	float live_lon = 10.967948;
+
+	float distance_to_dest;
+
 
 
   if(to_lat != 0 && to_lon != 0 && live_lat != 0 && live_lon != 0)
   {
-    gps_node::gps_raw latest_gps_data = get_latest_gps_data();
+		int final_heading = calc_heading(live_lat, live_lon, to_lat, to_lon);
 
-    // calc heading
-    float begin_lat1, begin_lon1, begin_lat2, begin_lon2;
-    begin_lat1 = live_lat;
-    begin_lon1 = live_lon;
-    begin_lat2 = to_lat;
-    begin_lon2 = to_lon;
-    float londif, head, lon1, lon2, lat1, lat2, finalans, finalans2, final_heading;
-    lat2=(begin_lat2*3.14159)/180;
-    lon2=(begin_lon2*3.14159)/180;
-    lat1=(begin_lat1*3.14159)/180;
-    lon1=(begin_lon1*3.14159)/180;
-    londif=lon2-lon1;
+		// done calc heading
+		ROS_INFO("DRIVING TO POS  lat: %f, lon: %f FROM lat: %f lon: %f", to_lat, to_lon, live_lat, live_lon);
+    ROS_INFO("Calc Heading: %d", final_heading);
 
-    ROS_INFO("DRIVING TO POS  lat: %f, lon: %f FROM lat: %f lon: %f", to_lat, to_lon, begin_lat1, begin_lon1);
-
-    head=atan2((sin(londif)*cos(lat2)),((cos(lat1)*sin(lat2))-(sin(lat1)*cos(lat2)*cos(londif)))) ;
-    finalans=(head*180)/3.14159;
-    finalans2=0;
-    if(finalans<=0)
-    {
-      finalans2=finalans+360;
-      final_heading= finalans2;
-    } else {
-      final_heading= finalans;
-    }
-    // done calc heading
-    ROS_INFO("Calc Heading: %f",final_heading);
-    gps_node::gps_raw latest_gps_data_sync;
+		gps_nav_node::turn_to turn;
+		turn.request.dir=final_heading;
+		if (ros::service::call("gps_nav_node/move_side", turn)){}
 
 
-    // TODO | CALL TURN_TO
-    gps_nav_node::turn_to turn;
-    turn.request.dir=final_heading;
-    if (ros::service::call("move_side", turn)){}
+		distance_to_dest = calculateDistance(live_lat, live_lon, to_lat, to_lon);
+		ROS_INFO("DISTANCE TO DEST: %f", distance_to_dest);
 
-    double distance_to_dest;
-    distance_to_dest = calc_distance(_ftod(live_lat), _ftod(live_lon), _ftod(to_lat), _ftod(to_lon));
-    ROS_INFO("Calc Dist: %lf",distance_to_dest);
-
-
-    // TODO | CALL drive forward
     driving_node::move_side move;
     move.request.dir="forward";
     move.request.side="both";
@@ -151,8 +156,9 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
 
     while(ros::ok())
     {
-      latest_gps_data_sync = get_latest_gps_data();
-      distance_to_dest = calc_distance(_ftod(latest_gps_data_sync.lat), _ftod(latest_gps_data_sync.lon), _ftod(to_lat), _ftod(to_lon));
+      latest_gps_data = get_latest_gps_data();
+      distance_to_dest = calculateDistance(latest_gps_data.lat, latest_gps_data.lon, to_lat, to_lon);
+			ROS_INFO("DISTANCE (LEFT) TO DEST: %f", distance_to_dest);
       if(distance_to_dest < 20){
           // TODO | stop drive forward
           move.request.throttle=0;

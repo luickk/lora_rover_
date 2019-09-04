@@ -1,12 +1,8 @@
 #include "ros/ros.h"
 
-#include <iostream>
+#include "libs/lmic/src/lmic.h"
+#include "libs/lmic/src/hal/hal.h"
 
-#include <wiringPi.h>
-#include <softPwm.h>
-#include <stdio.h>
-#include "libs/raspi-lmic/src/lmic.h"
-#include "libs/raspi-lmic/src/hal/hal.h"
 #if !defined(DISABLE_INVERT_IQ_ON_RX)
 #error This example requires DISABLE_INVERT_IQ_ON_RX to be set. Update \
        config.h in the lmic library to set it.

@@ -198,20 +198,20 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+set(CMAKE_CXX_FLAGS "-std=c++11 -DRASPBERRY_PI -DBCM2835_NO_DELAY_COMPATIBILITY -D__BASEFILE__=\"$*\"")
+
+add_library(raspi src/libs/lmic/src/raspi/raspi.cpp)
+add_library(radio src/libs/lmic/src/lmic/radio.cpp)
+add_library(oslmic src/libs/lmic/src/lmic/oslmic.cpp)
+add_library(lmic src/libs/lmic/src/lmic/lmic.cpp)
+add_library(hal src/libs/lmic/src/hal/hal.cpp)
+add_library(aes src/libs/lmic/src/aes/lmic.cpp)
 
 add_executable(lora_c src/lora_com.cpp)
+
+target_link_libraries(lora_c aes hal lmic oslmic radio raspi)
 
 target_link_libraries(lora_c ${catkin_LIBRARIES})
 
 target_link_libraries(lora_c "-L/usr/lib/" bcm2835)
 target_link_libraries(lora_c "-L/usr/lib/" wiringPi)
-
-set(CMAKE_CXX_FLAGS "-std=c++11 -DRASPBERRY_PI -DBCM2835_NO_DELAY_COMPATIBILITY -D__BASEFILE__=\"$*\"")
-set(CMAKE_CPP_FLAGS "-std=c++11 -DRASPBERRY_PI -DBCM2835_NO_DELAY_COMPATIBILITY -D__BASEFILE__=\"$*\"")
-
-add_library(raspi src/libs/raspi-lmic/src/raspi/raspi.cpp)
-add_library(radio src/libs/raspi-lmic/src/lmic/radio.cpp)
-add_library(oslmic src/libs/raspi-lmic/src/lmic/oslmic.cpp)
-add_library(lmic src/libs/raspi-lmic/src/lmic/lmic.cpp)
-add_library(hal src/libs/raspi-lmic/src/hal/hal.cpp)
-add_library(aes src/libs/raspi-lmic/src/aes/lmic.cpp)

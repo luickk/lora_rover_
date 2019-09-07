@@ -38,7 +38,7 @@
 #define LMIC_FAILURE_TO Serial
 
 // Uncomment this to disable all code related to joining
-//#define DISABLE_JOIN
+#define DISABLE_JOIN
 // Uncomment this to disable all code related to ping
 //#define DISABLE_PING
 // Uncomment this to disable all code related to beacon tracking.
@@ -82,11 +82,11 @@
 #define USE_IDEETRON_AES
 
 // Force Original AES on RPI
-#ifdef RASPBERRY_PI 
+#ifdef RASPBERRY_PI
 #ifdef USE_IDEETRON_AES
 #undef USE_IDEETRON_AES
 #define USE_ORIGINAL_AES
 #endif
-#endif 
+#endif
 
 #endif // _lmic_config_h_

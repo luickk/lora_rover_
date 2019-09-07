@@ -47,7 +47,10 @@ void onEvent (ev_t ev) {
 
 osjob_t txjob;
 osjob_t timeoutjob;
+
 static void tx_func (osjob_t* job);
+
+
 
 // Transmit the given string and call the given function afterwards
 void tx(const char *str, osjobcb_t func) {
@@ -60,7 +63,6 @@ void tx(const char *str, osjobcb_t func) {
   os_radio(RADIO_TX);
   Serial.println("TX");
 }
-
 // Enable rx mode and call func when a packet is received
 void rx(osjobcb_t func) {
   LMIC.osjob.func = func;
@@ -71,9 +73,7 @@ void rx(osjobcb_t func) {
   Serial.println("RX");
 }
 
-static void rxtimeout_func(osjob_t *job) {
-  digitalWrite(LED_BUILTIN, LOW); // off
-}
+
 
 static void rx_func (osjob_t* job) {
   // Blink once to confirm reception and then keep the led on
@@ -82,11 +82,11 @@ static void rx_func (osjob_t* job) {
   digitalWrite(LED_BUILTIN, HIGH); // on
 
   // Timeout RX (i.e. update led status) after 3 periods without RX
-  os_setTimedCallback(&timeoutjob, os_getTime() + ms2osticks(3*TX_INTERVAL), rxtimeout_func);
+  //os_setTimedCallback(&timeoutjob, os_getTime() + ms2osticks(3*TX_INTERVAL), rxtimeout_func);
 
   // Reschedule TX so that it should not collide with the other side's
   // next TX
-  os_setTimedCallback(&txjob, os_getTime() + ms2osticks(TX_INTERVAL/2), tx_func);
+  //os_setTimedCallback(&txjob, os_getTime() + ms2osticks(TX_INTERVAL/2), tx_func);
 
   Serial.print("Got ");
   Serial.print(LMIC.dataLen);
@@ -100,16 +100,6 @@ static void rx_func (osjob_t* job) {
 
 static void txdone_func (osjob_t* job) {
   rx(rx_func);
-}
-
-// log text to USART and toggle LED
-static void tx_func (osjob_t* job) {
-  // say hello
-  tx("Hello, world!", txdone_func);
-  // reschedule job every TX_INTERVAL (plus a bit of random to prevent
-  // systematic collisions), unless packets are received, then rx_func
-  // will reschedule at half this time.
-  os_setTimedCallback(job, os_getTime() + ms2osticks(TX_INTERVAL + random(500)), tx_func);
 }
 
 // application entry point
@@ -141,8 +131,6 @@ void setup() {
 
   printf("Started\n");
 
-  // setup initial job
-  os_setCallback(&txjob, tx_func);
 }
 
 
@@ -157,9 +145,13 @@ int main(int argc, char **argv)
 
   setup();
 
+
+  tx("HALLO", txdone_func);
+
   while(ros::ok()) {
     // execute scheduled jobs and events
     os_runloop_once();
+
   }
   return 0;
 }

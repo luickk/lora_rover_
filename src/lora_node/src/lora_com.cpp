@@ -3,6 +3,12 @@
 #include "libs/lmic/src/lmic.h"
 #include "libs/lmic/src/hal/hal.h"
 
+#include "driving_node/move_side.h"
+#include "compass_node/compass_raw.h"
+
+#include "gps_node/gps_raw.h"
+#include "compass_node/compass_raw.h"
+
 #if !defined(DISABLE_INVERT_IQ_ON_RX)
 #error This example requires DISABLE_INVERT_IQ_ON_RX to be set. Update \
        config.h in the lmic library to set it.
@@ -61,7 +67,7 @@ void tx(const char *str, osjobcb_t func) {
     LMIC.frame[LMIC.dataLen++] = *str++;
   LMIC.osjob.func = func;
   os_radio(RADIO_TX);
-  Serial.println("TX");
+  // Serial.println("TX");
 }
 // Enable rx mode and call func when a packet is received
 void rx(osjobcb_t func) {
@@ -70,9 +76,12 @@ void rx(osjobcb_t func) {
   // Enable "continuous" RX (e.g. without a timeout, still stops after
   // receiving a packet)
   os_radio(RADIO_RXON);
-  Serial.println("RX");
+  // Serial.println("RX");
 }
 
+static void rxtimeout_func(osjob_t *job) {
+  digitalWrite(LED_BUILTIN, LOW); // off
+}
 
 
 static void rx_func (osjob_t* job) {
@@ -82,11 +91,11 @@ static void rx_func (osjob_t* job) {
   digitalWrite(LED_BUILTIN, HIGH); // on
 
   // Timeout RX (i.e. update led status) after 3 periods without RX
-  //os_setTimedCallback(&timeoutjob, os_getTime() + ms2osticks(3*TX_INTERVAL), rxtimeout_func);
+  os_setTimedCallback(&timeoutjob, os_getTime() + ms2osticks(3*TX_INTERVAL), rxtimeout_func);
 
   // Reschedule TX so that it should not collide with the other side's
   // next TX
-  //os_setTimedCallback(&txjob, os_getTime() + ms2osticks(TX_INTERVAL/2), tx_func);
+  os_setTimedCallback(&txjob, os_getTime() + ms2osticks(TX_INTERVAL/2), tx_func);
 
   Serial.print("Got ");
   Serial.print(LMIC.dataLen);
@@ -102,10 +111,48 @@ static void txdone_func (osjob_t* job) {
   rx(rx_func);
 }
 
+/*
+  Local function to read gps location
+*/
+gps_node::gps_raw get_latest_gps_data()
+{
+  gps_node::gps_raw latest_gps_data = *ros::topic::waitForMessage<gps_node::gps_raw>("/gps_raw", ros::Duration(10));
+
+  return latest_gps_data;
+}
+
+/*
+  Local function to get compass dir
+*/
+int get_latest_dir()
+{
+  compass_node::compass_raw latest_dir = *ros::topic::waitForMessage<compass_node::compass_raw>("/compass_raw", ros::Duration(10));
+
+  return latest_dir.dir;
+}
+
+
+// log text to USART and toggle LED
+static void tx_func (osjob_t* job) {
+
+  gps_node::gps_raw latest_gps_data = get_latest_gps_data();
+
+  int live_heading = get_latest_dir();
+  float live_lat = latest_gps_data.lat;
+  float live_lon = latest_gps_data.lon;
+
+  std::stringstream data;
+  data << "dir:" << live_heading << ", lat:" << live_lat << ", lon:" << live_lon;
+
+  tx(data.str().c_str(), txdone_func);
+  // reschedule job every TX_INTERVAL (plus a bit of random to prevent
+  // systematic collisions), unless packets are received, then rx_func
+  // will reschedule at half this time.
+  os_setTimedCallback(job, os_getTime() + ms2osticks(TX_INTERVAL + random(500)), tx_func);
+}
+
 // application entry point
 void setup() {
-  printf("Starting\n");
-
   pinMode(LED_BUILTIN, OUTPUT);
 
   // initialize runtime env
@@ -129,8 +176,7 @@ void setup() {
   // This sets CR 4/5, BW125 (except for DR_SF7B, which uses BW250)
   LMIC.rps = updr2rps(LMIC.datarate);
 
-  printf("Started\n");
-
+  os_setCallback(&txjob, tx_func);
 }
 
 
@@ -144,9 +190,6 @@ int main(int argc, char **argv)
     return 1;
 
   setup();
-
-
-  tx("HALLO", txdone_func);
 
   while(ros::ok()) {
     // execute scheduled jobs and events

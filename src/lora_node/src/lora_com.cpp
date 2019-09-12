@@ -9,6 +9,9 @@
 #include "gps_node/gps_raw.h"
 #include "compass_node/compass_raw.h"
 
+#include "gps_nav_node/nav_to.h"
+
+
 #if !defined(DISABLE_INVERT_IQ_ON_RX)
 #error This example requires DISABLE_INVERT_IQ_ON_RX to be set. Update \
        config.h in the lmic library to set it.
@@ -40,6 +43,7 @@ const lmic_pinmap lmic_pins = {
 #define RF_LED_PIN NOT_A_PIN
 #endif
 
+std::string data_last_tx;
 
 // These callbacks are only used in over-the-air activation, so they are
 // left empty here (we cannot leave them out completely unless
@@ -97,12 +101,46 @@ static void rx_func (osjob_t* job) {
   // next TX
   os_setTimedCallback(&txjob, os_getTime() + ms2osticks(TX_INTERVAL/2), tx_func);
 
-  Serial.print("Got ");
-  Serial.print(LMIC.dataLen);
-  Serial.println(" bytes");
-  Serial.write(LMIC.frame, LMIC.dataLen);
-  Serial.println();
+  // Serial.print("Got ");
+  // Serial.print(LMIC.dataLen);
+  // Serial.println(" bytes");
+  // Serial.write(LMIC.frame, LMIC.dataLen);
+  // Serial.println();
 
+  std::string data_tx(reinterpret_cast< char const* >(LMIC.frame));
+  data_tx = data_tx.substr(0,LMIC.dataLen);
+
+  if (data_tx != data_last_tx)
+  {
+    std::cout << data_tx << std::endl;
+    std::vector<std::string> data_args;
+    std::istringstream data_args_ss(data_tx);
+    for(std::string v; data_args_ss >> v; )
+        data_args.push_back(v);
+    if(data_args[0] == "navto" && data_args.size() == 3)
+    {
+      float lat = std::stof(data_args[1].c_str());
+      float lon = std::stof(data_args[2].c_str());
+      ROS_INFO("nav_to called via lora");
+      ROS_INFO("lat: %f", lat);
+      ROS_INFO("lon: %f", lon);
+
+  		gps_nav_node::nav_to navto;
+  		navto.request.lat=lat;
+      navto.request.lon=lon;
+
+  		if (ros::service::call("gps_nav_node/nav_to", navto))
+      {
+        ROS_INFO("navto called");
+      } else
+      {
+        ROS_INFO("navto call fail");
+      }
+    }
+  }
+
+
+  data_last_tx = data_tx;
   // Restart RX
   rx(rx_func);
 }

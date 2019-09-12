@@ -113,6 +113,7 @@ int calc_heading(float lat,float lon,float lat2,float lon2){
 
 bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response &res)
 {
+  ROS_INFO("navto init");
   gps_node::gps_raw latest_gps_data = get_latest_gps_data();
 
   float to_lat = req.lat;
@@ -143,7 +144,7 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
 
 		gps_nav_node::turn_to turn;
 		turn.request.dir=final_heading;
-		if (ros::service::call("gps_nav_node/move_side", turn)){}
+		if (ros::service::call("driving_node/move_side", turn)){}
 
 
 		distance_to_dest = calculateDistance(live_lat, live_lon, to_lat, to_lon);

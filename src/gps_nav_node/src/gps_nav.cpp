@@ -120,15 +120,15 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
 
   float to_lon = req.lon;
 
-  // float live_lat = latest_gps_data.lat;
+  float live_lat = latest_gps_data.lat;
 
-  // float live_lon = latest_gps_data.lon;
+  float live_lon = latest_gps_data.lon;
 
 	// debug:
 
-	float live_lat = 49.466611;
+	//float live_lat = 49.466611;
 
-	float live_lon = 10.967948;
+	//float live_lon = 10.967948;
 
 	float distance_to_dest;
 

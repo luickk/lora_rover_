@@ -129,7 +129,7 @@ static void rx_func (osjob_t* job) {
   		navto.request.lat=lat;
       navto.request.lon=lon;
 
-  		if (ros::service::call("gps_nav_node/nav_to", navto))
+  		if (ros::service::call("nav_to", navto))
       {
         ROS_INFO("navto called");
       } else
@@ -176,6 +176,7 @@ static void tx_func (osjob_t* job) {
   gps_node::gps_raw latest_gps_data = get_latest_gps_data();
 
   int live_heading = get_latest_dir();
+  
   float live_lat = latest_gps_data.lat;
   float live_lon = latest_gps_data.lon;
 

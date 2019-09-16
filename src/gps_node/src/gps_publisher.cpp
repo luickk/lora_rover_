@@ -46,6 +46,9 @@ int main(int argc, char **argv)
   long lat;
   long lon;
 
+  float latf;
+  float lonf;
+
   int input = 0;
   while (ros::ok())
   {
@@ -62,18 +65,12 @@ int main(int argc, char **argv)
       lat = nmea.getLatitude();
       lon = nmea.getLongitude();
 
+      latf = (float) lat/1000000;
+      lonf = (float) lon/1000000;
 
-      if (lat > 1 && lon > 1)
-      {
-        lat = stoi(to_string(lat).insert(2, "."));
-        lon = stoi(to_string(lon).insert(1, "."));
-      }
-
-      //std::cout << "NumSatellites: " << NumSatellites << ", ";
-      //std::cout << "Lat: " << lat << ", ";
-      //std::cout << "Lon: " << lon << std::endl;
-
-      //std::cout << data;
+      ROS_INFO("NumSatellites: %ld", NumSatellites);
+      ROS_INFO("Lat: %f", latf);
+      ROS_INFO("Lon: %f", lonf);
 
       gps_data.num_sats = NumSatellites;
       gps_data.lat = lat;
@@ -81,7 +78,8 @@ int main(int argc, char **argv)
 
       chatter_pub.publish(gps_data);
 
-      //data = "";
+      usleep(10000);
+
       ros::spinOnce();
       loop_rate.sleep();
       if(input==-1){

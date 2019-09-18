@@ -199,10 +199,13 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(gps_nav src/gps_nav.cpp)
+add_executable(gps_turnto src/gps_turnto.cpp)
+add_executable(gps_navto src/gps_navto.cpp)
 
-target_link_libraries(gps_nav ${catkin_LIBRARIES})
+target_link_libraries(gps_navto ${catkin_LIBRARIES})
+target_link_libraries(gps_navto "-L/usr/lib/" wiringPi)
+target_link_libraries(gps_navto "-L/usr/lib/" pthread)
 
-target_link_libraries(gps_nav "-L/usr/lib/" wiringPi)
-
-target_link_libraries(gps_nav "-L/usr/lib/" pthread)
+target_link_libraries(gps_turnto ${catkin_LIBRARIES})
+target_link_libraries(gps_turnto "-L/usr/lib/" wiringPi)
+target_link_libraries(gps_turnto "-L/usr/lib/" pthread)

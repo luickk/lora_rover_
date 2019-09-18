@@ -7,11 +7,11 @@
 #include <stdio.h>
 #include <cmath>
 
-#include "gps_nav_node/turn_to.h"
 #include "gps_nav_node/nav_to.h"
 #include "gps_node/gps_raw.h"
 
 #include "driving_node/move_side.h"
+#include "gps_nav_node/turn_to.h"
 #include "compass_node/compass_raw.h"
 
 # define PI		3.14159265358979323846	/* pi */
@@ -111,70 +111,10 @@ int calc_heading(float lat,float lon,float lat2,float lon2){
 	return final_heading;
 }
 
-bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response &res)
-{
-  ROS_INFO("navto init");
-  gps_node::gps_raw latest_gps_data = get_latest_gps_data();
-
-  float to_lat = req.lat;
-
-  float to_lon = req.lon;
-
-  float live_lat = latest_gps_data.lat;
-
-  float live_lon = latest_gps_data.lon;
-
-	// debug:
-
-	//float live_lat = 49.466611;
-
-	//float live_lon = 10.967948;
-
-	float distance_to_dest;
-
-
-
-  if(to_lat != 0 && to_lon != 0 && live_lat != 0 && live_lon != 0)
-  {
-		int final_heading = calc_heading(live_lat, live_lon, to_lat, to_lon);
-
-		// done calc heading
-		ROS_INFO("DRIVING TO POS  lat: %f, lon: %f FROM lat: %f lon: %f", to_lat, to_lon, live_lat, live_lon);
-    ROS_INFO("Calc Heading: %d", final_heading);
-
-		gps_nav_node::turn_to turn;
-		turn.request.dir=final_heading;
-		if (ros::service::call("driving_node/move_side", turn)){}
-
-
-		distance_to_dest = calculateDistance(live_lat, live_lon, to_lat, to_lon);
-		ROS_INFO("DISTANCE TO DEST: %f", distance_to_dest);
-
-    driving_node::move_side move;
-    move.request.dir="forward";
-    move.request.side="both";
-    move.request.throttle=50;
-    if (ros::service::call("move_side", move)){}
-
-    while(ros::ok())
-    {
-      latest_gps_data = get_latest_gps_data();
-      distance_to_dest = calculateDistance(latest_gps_data.lat, latest_gps_data.lon, to_lat, to_lon);
-			ROS_INFO("DISTANCE (LEFT) TO DEST: %f", distance_to_dest);
-      if(distance_to_dest < 20){
-          // TODO | stop drive forward
-          move.request.throttle=0;
-          if (ros::service::call("move_side", move)){}
-      }
-    }
-  }
-  res.status = 1;
-  return true;
-}
-
 bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Response &res)
 {
-	ROS_INFO("Turning to %f", req.dir);
+  int rdir = req.dir;
+	ROS_INFO("Turning to %i", rdir);
 	int live_heading;
 
 	int exec_deg = req.dir;
@@ -200,13 +140,12 @@ bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Respon
   return true;
 }
 
+
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "Driving Node");
+  ros::init(argc, argv, "gps_turnto");
   ros::NodeHandle n;
-
   ros::ServiceServer serv1 = n.advertiseService("turn_to", turn_to);
-  ros::ServiceServer serv2 = n.advertiseService("nav_to", nav_to);
 
   ros::spin();
 

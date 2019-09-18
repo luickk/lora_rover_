@@ -55,26 +55,47 @@ int main(int argc, char **argv)
     while (serialDataAvail (fd))
     {
       input = serialGetchar (fd);
+      try
+      {
+        nmea.process(input);
 
-      nmea.process(input);
+        NumSatellites = nmea.getNumSatellites();
 
-      //data.push_back(input);
+        lat = nmea.getLatitude();
+        lon = nmea.getLongitude();
 
-      NumSatellites = nmea.getNumSatellites();
+        latf = (float) lat/1000000;
+        lonf = (float) lon/1000000;
 
-      lat = nmea.getLatitude();
-      lon = nmea.getLongitude();
+        // ROS_INFO("NumSatellites: %ld", NumSatellites);
+        // ROS_INFO("Lat: %f", latf);
+        // ROS_INFO("Lon: %f", lonf);
 
-      latf = (float) lat/1000000;
-      lonf = (float) lon/1000000;
+        float debug_lat = 49.466602;
 
-      ROS_INFO("NumSatellites: %ld", NumSatellites);
-      ROS_INFO("Lat: %f", latf);
-      ROS_INFO("Lon: %f", lonf);
+        float debug_lon = 10.967921;
 
-      gps_data.num_sats = NumSatellites;
-      gps_data.lat = lat;
-      gps_data.lon = lon;
+        gps_data.num_sats = NumSatellites;
+        gps_data.lat = debug_lat;
+        gps_data.lon = debug_lon;
+
+      }
+      catch (const std::invalid_argument& ia) {
+          //std::cerr << "Invalid argument: " << ia.what() << std::endl;
+          return -1;
+      }
+
+      catch (const std::out_of_range& oor) {
+          //std::cerr << "Out of Range error: " << oor.what() << std::endl;
+          return -2;
+      }
+
+      catch (const std::exception& e)
+      {
+          //std::cerr << "Undefined error: " << e.what() << std::endl;
+          return -3;
+      }
+      
 
       chatter_pub.publish(gps_data);
 

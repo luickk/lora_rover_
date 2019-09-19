@@ -121,7 +121,7 @@ bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Respon
 	driving_node::move_side move;
 	move.request.dir="forward";
 	move.request.side="left";
-	move.request.throttle=50;
+	move.request.throttle=38;
 	if (ros::service::call("move_side", move)){}
 	move.request.dir="backward";
 	move.request.side="right";
@@ -130,7 +130,7 @@ bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Respon
 	while(ros::ok()){
 		live_heading = get_latest_dir();
 		ROS_INFO("%d", live_heading);
-		if(in_Range(exec_deg-20,exec_deg+20, (uint)live_heading)){
+		if(in_Range(exec_deg-10,exec_deg+10, (uint)live_heading)){
 			move.request.side="both";
 			move.request.throttle=0;
 			if (ros::service::call("move_side", move)){}

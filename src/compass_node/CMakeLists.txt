@@ -198,7 +198,11 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+add_library(qmclib src/QMC5883L.cpp)
+
 add_executable(compass_publisher src/compass_publisher.cpp)
+
+target_link_libraries(compass_publisher qmclib)
 
 target_link_libraries(compass_publisher ${catkin_LIBRARIES})
 

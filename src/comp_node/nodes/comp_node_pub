@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+from simontest import main
+from comp_node.msg import compass_raw
+
+import rospy
+import py_qmc5883l
+import time
+
+
+def main():
+	rospy.init_node('comp_node_pub', anonymous=True)
+	# requires py-qmc5883l lib: https://github.com/RigacciOrg/py-qmc5883l
+
+	sensor = py_qmc5883l.QMC5883L()
+
+	sensor.calibration = [[1.030, 0.026, -227.799],
+		                 [0.0255, 1.021, 1016.442],
+		                 [0.0, 0.0, 1.0]]
+
+	pub = rospy.Publisher('compass_raw', compass_raw, queue_size=10)
+
+	rate = rospy.Rate(10) # 10hz
+	msg = compass_raw()
+	while not rospy.is_shutdown():
+		bearing = int(round(sensor.get_bearing()))
+		# rospy.loginfo(bearing)
+		msg.dir = int(round(sensor.get_bearing()))
+		pub.publish(msg)
+
+		rate.sleep()
+
+
+
+if __name__ == '__main__':
+	try:
+		main()
+	except rospy.ROSInterruptException:
+		pass

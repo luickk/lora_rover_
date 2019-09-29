@@ -121,7 +121,7 @@ bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Respon
 	driving_node::move_side move;
 	move.request.dir="forward";
 	move.request.side="left";
-	move.request.throttle=38;
+	move.request.throttle=50;
 	if (ros::service::call("move_side", move)){}
 	move.request.dir="backward";
 	move.request.side="right";

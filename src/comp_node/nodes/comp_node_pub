@@ -20,11 +20,13 @@ def main():
 
 	pub = rospy.Publisher('compass_raw', compass_raw, queue_size=10)
 
-	rate = rospy.Rate(10) # 10hz
+	rate = rospy.Rate(100)
 	msg = compass_raw()
 	while not rospy.is_shutdown():
 		bearing = int(round(sensor.get_bearing()))
+		
 		# rospy.loginfo(bearing)
+
 		msg.dir = int(round(sensor.get_bearing()))
 		pub.publish(msg)
 

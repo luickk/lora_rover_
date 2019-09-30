@@ -113,30 +113,36 @@ int calc_heading(float lat,float lon,float lat2,float lon2){
 
 bool turn_to(gps_nav_node::turn_to::Request  &req, gps_nav_node::turn_to::Response &res)
 {
+  ros::param::set("turning_to", true);
+
   int rdir = req.dir;
-	ROS_INFO("Turning to %i", rdir);
-	int live_heading;
+  ROS_INFO("Turning to %i", rdir);
+  int live_heading;
 
-	int exec_deg = req.dir;
-	driving_node::move_side move;
-	move.request.dir="forward";
-	move.request.side="left";
-	move.request.throttle=50;
-	if (ros::service::call("move_side", move)){}
-	move.request.dir="backward";
-	move.request.side="right";
-	if (ros::service::call("move_side", move)){}
+  int exec_deg = req.dir;
+  driving_node::move_side move;
+  move.request.dir="forward";
+  move.request.side="left";
+  move.request.throttle=50;
+  if (ros::service::call("move_side", move)){}
+  move.request.dir="backward";
+  move.request.side="right";
+  if (ros::service::call("move_side", move)){}
 
-	while(ros::ok()){
-		live_heading = get_latest_dir();
-		ROS_INFO("%d", live_heading);
-		if(in_Range(exec_deg-10,exec_deg+10, (uint)live_heading)){
-			move.request.side="both";
-			move.request.throttle=0;
-			if (ros::service::call("move_side", move)){}
-			break;
-		}
-	}
+  while(ros::ok())
+  {
+    live_heading = get_latest_dir();
+    ROS_INFO("%d", live_heading);
+    if(in_Range(exec_deg-10,exec_deg+10, (uint)live_heading))
+    {
+    	move.request.side="both";
+    	move.request.throttle=0;
+    	if (ros::service::call("move_side", move)){}
+    	break;
+    }
+  }
+  ros::param::set("turning_to", false);
+
   return true;
 }
 
@@ -145,6 +151,9 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "gps_turnto");
   ros::NodeHandle n;
+
+  ros::param::set("turning_to", false);
+
   ros::ServiceServer serv1 = n.advertiseService("turn_to", turn_to);
 
   ros::spin();

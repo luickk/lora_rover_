@@ -176,12 +176,21 @@ static void tx_func (osjob_t* job) {
   gps_node::gps_raw latest_gps_data = get_latest_gps_data();
 
   int live_heading = get_latest_dir();
-  
+
   float live_lat = latest_gps_data.lat;
   float live_lon = latest_gps_data.lon;
 
   std::stringstream data;
-  data << "dir:" << live_heading << ", lat:" << live_lat << ", lon:" << live_lon;
+
+  bool turn_to_srv_online;
+  bool nav_to_srv_online;
+
+  ros::param::get("/turning_to", turn_to_srv_online);
+  ros::param::get("/naving_to", nav_to_srv_online);
+
+  data << "dir:" << live_heading << ", lat:" << live_lat << ", lon:" << live_lon << ", turn_to:" << turn_to_srv_online << ", nav_to:" << nav_to_srv_online;
+
+  ROS_INFO(data.str().c_str());
 
   tx(data.str().c_str(), txdone_func);
   // reschedule job every TX_INTERVAL (plus a bit of random to prevent

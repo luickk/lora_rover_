@@ -113,6 +113,7 @@ int calc_heading(float lat,float lon,float lat2,float lon2){
 
 bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response &res)
 {
+  ros::param::set("naving_to", true);
   ROS_INFO("navto init");
   gps_node::gps_raw latest_gps_data = get_latest_gps_data();
 
@@ -166,6 +167,7 @@ bool nav_to(gps_nav_node::nav_to::Request  &req, gps_nav_node::nav_to::Response 
     }
   }
   res.status = 1;
+  ros::param::set("naving_to", false);
   return true;
 }
 
@@ -173,6 +175,8 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "gps_navto");
   ros::NodeHandle n;
+  ros::param::set("naving_to", false);
+
   ros::ServiceServer serv2 = n.advertiseService("nav_to", nav_to);
 
   ros::spin();

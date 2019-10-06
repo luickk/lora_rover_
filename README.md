@@ -6,15 +6,15 @@ The system consists of multiple units, the rover itself, a [basestation](https:/
 
 # ROS packages
 
-- cc_node	
+- cc_node	<br>
   command & control node 
-- comp_node 
+- comp_node <br>
   compass node, handling and publishing incoming i2C compass data 
-- driving_node
+- driving_node <br>
   providing services for basic robot movements
-- gps_nav_node
+- gps_nav_node <br>
   providing services for gps & compass dependent movements
-- gps_node	
+- gps_node <br>
   handling & proccessing, publishing incoming serial gps data
-- lora_node
+- lora_node <br>
   providing and interface for communication

@@ -10,6 +10,7 @@
 #include "compass_node/compass_raw.h"
 
 #include "gps_nav_node/nav_to.h"
+#include "gps_nav_node/turn_to.h"
 
 
 #if !defined(DISABLE_INVERT_IQ_ON_RX)
@@ -136,7 +137,24 @@ static void rx_func (osjob_t* job) {
       {
         ROS_INFO("navto call fail");
       }
+    } else if(data_args[0] == "turnto" && data_args.size() == 2)
+    {
+      int dir = std::stoi(data_args[1].c_str());
+      ROS_INFO("turnto called via lora");
+      ROS_INFO("dir: %d", dir);
+
+  		gps_nav_node::turn_to turnto;
+  		turnto.request.dir=dir;
+
+  		if (ros::service::call("turn_to", turnto))
+      {
+        ROS_INFO("turnto called");
+      } else
+      {
+        ROS_INFO("turnto call fail");
+      }
     }
+
   }
 
 
@@ -177,8 +195,8 @@ static void tx_func (osjob_t* job) {
 
   int live_heading = get_latest_dir();
 
-  float live_lat = latest_gps_data.lat;
-  float live_lon = latest_gps_data.lon;
+  double live_lat = latest_gps_data.lat;
+  double live_lon = latest_gps_data.lon;
 
   std::stringstream data;
 
@@ -188,7 +206,7 @@ static void tx_func (osjob_t* job) {
   ros::param::get("/turning_to", turn_to_srv_online);
   ros::param::get("/naving_to", nav_to_srv_online);
 
-  data << "dir:" << live_heading << ", lat:" << live_lat << ", lon:" << live_lon << ", turn_to:" << turn_to_srv_online << ", nav_to:" << nav_to_srv_online;
+  data << "dir:" << std::fixed << std::setprecision(6) << live_heading << ", lat:" << live_lat << ", lon:" << live_lon << ", turn_to:" << turn_to_srv_online << ", nav_to:" << nav_to_srv_online;
 
   ROS_INFO(data.str().c_str());
 

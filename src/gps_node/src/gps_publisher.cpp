@@ -46,8 +46,8 @@ int main(int argc, char **argv)
   long lat;
   long lon;
 
-  float latf;
-  float lonf;
+  double latf;
+  double lonf;
 
   int input = 0;
   while (ros::ok())
@@ -64,20 +64,23 @@ int main(int argc, char **argv)
         lat = nmea.getLatitude();
         lon = nmea.getLongitude();
 
-        latf = (float) lat/1000000;
-        lonf = (float) lon/1000000;
+        // std::cout << lat << ", " << lon << std::endl;
+
+        latf = (double) lat/1000000;
+        lonf = (double) lon/1000000;
+
+        // std::cout << "double: " << lat << ", " << lon << std::endl;
 
         // ROS_INFO("NumSatellites: %ld", NumSatellites);
-        // ROS_INFO("Lat: %f", latf);
-        // ROS_INFO("Lon: %f", lonf);
+        // ROS_INFO("Lat: %d ", latf);
+        // ROS_INFO("Lon: %d", lonf);
 
         float debug_lat = 49.466602;
-
         float debug_lon = 10.967921;
 
         gps_data.num_sats = NumSatellites;
-        gps_data.lat = debug_lat;
-        gps_data.lon = debug_lon;
+        gps_data.lat = latf;
+        gps_data.lon = lonf;
 
       }
       catch (const std::invalid_argument& ia) {
@@ -95,7 +98,7 @@ int main(int argc, char **argv)
           //std::cerr << "Undefined error: " << e.what() << std::endl;
           return -3;
       }
-      
+
 
       chatter_pub.publish(gps_data);
 

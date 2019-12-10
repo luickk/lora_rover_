@@ -12,7 +12,6 @@
 #include "gps_nav_node/nav_to.h"
 #include "gps_nav_node/turn_to.h"
 
-
 #if !defined(DISABLE_INVERT_IQ_ON_RX)
 #error This example requires DISABLE_INVERT_IQ_ON_RX to be set. Update \
        config.h in the lmic library to set it.
@@ -46,6 +45,12 @@ const lmic_pinmap lmic_pins = {
 
 std::string data_last_tx;
 
+// Telemetry: tele, Image: tx_img
+std::string tx_mode = "tele";
+
+char* image_buffer[5000];
+int image_tx_size = 200;
+int image_tx_interval = 0;
 // These callbacks are only used in over-the-air activation, so they are
 // left empty here (we cannot leave them out completely unless
 // DISABLE_JOIN is set in config.h, otherwise the linker will complain).
@@ -153,6 +158,12 @@ static void rx_func (osjob_t* job) {
       {
         ROS_INFO("turnto call fail");
       }
+    } else if(data_args[0] == "tx_img")
+    {
+      tx_mode = "tx_img";
+      memset(image_buffer, 0, sizeof(image_buffer));
+      //std::fill(&image_buffer, &image_buffer+sizeof(image_buffer), 0);
+
     }
 
   }
@@ -187,30 +198,40 @@ int get_latest_dir()
   return latest_dir.dir;
 }
 
+int intervals = 0;
 
 // log text to USART and toggle LED
-static void tx_func (osjob_t* job) {
+static void tx_func (osjob_t* job)
+{
+  if(tx_mode=="tele")
+  {
+    gps_node::gps_raw latest_gps_data = get_latest_gps_data();
 
-  gps_node::gps_raw latest_gps_data = get_latest_gps_data();
+    int live_heading = get_latest_dir();
 
-  int live_heading = get_latest_dir();
+    double live_lat = latest_gps_data.lat;
+    double live_lon = latest_gps_data.lon;
 
-  double live_lat = latest_gps_data.lat;
-  double live_lon = latest_gps_data.lon;
+    std::stringstream data;
 
-  std::stringstream data;
+    bool turn_to_srv_online;
+    bool nav_to_srv_online;
 
-  bool turn_to_srv_online;
-  bool nav_to_srv_online;
+    ros::param::get("/turning_to", turn_to_srv_online);
+    ros::param::get("/naving_to", nav_to_srv_online);
 
-  ros::param::get("/turning_to", turn_to_srv_online);
-  ros::param::get("/naving_to", nav_to_srv_online);
+    data << "dir:" << std::fixed << std::setprecision(6) << live_heading << ", lat:" << live_lat << ", lon:" << live_lon << ", turn_to:" << turn_to_srv_online << ", nav_to:" << nav_to_srv_online;
 
-  data << "dir:" << std::fixed << std::setprecision(6) << live_heading << ", lat:" << live_lat << ", lon:" << live_lon << ", turn_to:" << turn_to_srv_online << ", nav_to:" << nav_to_srv_online;
+    ROS_INFO(data.str().c_str());
 
-  ROS_INFO(data.str().c_str());
+    tx(data.str().c_str(), txdone_func);
 
-  tx(data.str().c_str(), txdone_func);
+  } else if (tx_mode == "tx_img")
+  {
+    image_tx_interval++;
+    intervals = std::ceil((sizeof(image_buffer)/4)/image_tx_size);
+    ROS_INFO("Image transmission in %d steps with size %d, at interval %d ", intervals, sizeof(image_buffer)/4, image_tx_interval);
+  }
   // reschedule job every TX_INTERVAL (plus a bit of random to prevent
   // systematic collisions), unless packets are received, then rx_func
   // will reschedule at half this time.

@@ -48,7 +48,7 @@ std::string data_last_tx;
 // Telemetry: tele, Image: tx_img
 std::string tx_mode = "tele";
 
-char* image_buffer[5000];
+char image_buffer[5000];
 int image_tx_size = 200;
 int image_tx_interval = 0;
 // These callbacks are only used in over-the-air activation, so they are
@@ -199,6 +199,7 @@ int get_latest_dir()
 }
 
 int intervals = 0;
+int bytesize = 0;
 
 // log text to USART and toggle LED
 static void tx_func (osjob_t* job)
@@ -228,10 +229,36 @@ static void tx_func (osjob_t* job)
 
   } else if (tx_mode == "tx_img")
   {
-    image_tx_interval++;
-    intervals = std::ceil((sizeof(image_buffer)/4)/image_tx_size);
-    ROS_INFO("Image transmission in %d steps with size %d, at interval %d ", intervals, sizeof(image_buffer)/4, image_tx_interval);
+    if(image_tx_interval>intervals)
+    {
+      image_tx_interval=0;
+      tx_mode = "tele";
+    } else
+    {
+      bytesize = sizeof(image_buffer)/sizeof(image_buffer[0]);
+      intervals = std::ceil(bytesize/image_tx_size);
+
+      ROS_INFO("Image transmission in %d steps with size %d, at interval %d ", intervals, bytesize, image_tx_interval);
+
+      char data[image_tx_size+1];
+
+      //memcpy(data, image_buffer+image_tx_size*image_tx_size, image_tx_size);
+      for(int i=0; i<image_tx_size; i++)
+      {
+        data[i] = image_buffer[image_tx_interval*image_tx_size+i];
+      }
+
+      // adding null termination byte
+      data[image_tx_size+1] = '\n';
+
+      ROS_INFO("Transmitting img, with frame size %d", sizeof(data)/sizeof(data[0]), image_tx_interval);
+
+      std::cout << data << std::endl;
+
+      // tx(data, txdone_func);
+      image_tx_interval++;
   }
+}
   // reschedule job every TX_INTERVAL (plus a bit of random to prevent
   // systematic collisions), unless packets are received, then rx_func
   // will reschedule at half this time.

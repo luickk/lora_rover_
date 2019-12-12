@@ -49,8 +49,11 @@ std::string data_last_tx;
 std::string tx_mode = "tele";
 
 char image_buffer[5000];
-int image_tx_size = 200;
+
+// the lmic library limits the max data size zto 50 bytes
+int image_tx_size = 60;
 int image_tx_interval = 0;
+
 // These callbacks are only used in over-the-air activation, so they are
 // left empty here (we cannot leave them out completely unless
 // DISABLE_JOIN is set in config.h, otherwise the linker will complain).
@@ -161,7 +164,7 @@ static void rx_func (osjob_t* job) {
     } else if(data_args[0] == "tx_img")
     {
       tx_mode = "tx_img";
-      memset(image_buffer, 0, sizeof(image_buffer));
+      memset(image_buffer, 255, sizeof(image_buffer));
       //std::fill(&image_buffer, &image_buffer+sizeof(image_buffer), 0);
 
     }
@@ -233,6 +236,7 @@ static void tx_func (osjob_t* job)
     {
       image_tx_interval=0;
       tx_mode = "tele";
+      tx("imgtxend", txdone_func);
     } else
     {
       bytesize = sizeof(image_buffer)/sizeof(image_buffer[0]);
@@ -253,12 +257,15 @@ static void tx_func (osjob_t* job)
 
       ROS_INFO("Transmitting img, with frame size %d", sizeof(data)/sizeof(data[0]), image_tx_interval);
 
-      std::cout << data << std::endl;
+      // for(int i=0; i<sizeof(data)/sizeof(data[0]); i++)
+      // {
+      //   printf("data char: %d \n", data[i]);
+      // }
 
-      // tx(data, txdone_func);
+      tx(data, txdone_func);
       image_tx_interval++;
+    }
   }
-}
   // reschedule job every TX_INTERVAL (plus a bit of random to prevent
   // systematic collisions), unless packets are received, then rx_func
   // will reschedule at half this time.

@@ -1,3 +1,6 @@
+#include <raspicam/raspicam.h>
+#include <opencv2/opencv.hpp>
+
 #include "ros/ros.h"
 
 #include "libs/lmic/src/lmic.h"
@@ -164,8 +167,30 @@ static void rx_func (osjob_t* job) {
     } else if(data_args[0] == "tx_img")
     {
       tx_mode = "tx_img";
-      memset(image_buffer, 255, sizeof(image_buffer));
-      //std::fill(&image_buffer, &image_buffer+sizeof(image_buffer), 0);
+
+      raspicam::RaspiCam Camera; //Camera object
+      //Open camera
+      std::cout<<"Opening Camera to take an img..."<<std::endl;
+      if ( !Camera.open()) {std::cerr<<"Error opening camera"<<std::endl;
+      } else
+      {
+        //wait a while until camera stabilizes
+        sleep(3);
+        //capture
+        Camera.grab();
+        //allocate memory
+        unsigned char *data=new unsigned char[  Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
+        //extract the image in rgb format
+        Camera.retrieve (data,raspicam::RASPICAM_FORMAT_RGB );//get camera ima
+
+        //cv::resize(data, cv::Size(70, 70));
+
+        // TODO delete data array pointer from heap
+
+        // for testing purposes
+        //memset(image_buffer, 255, sizeof(image_buffer));
+
+      }
 
     }
 

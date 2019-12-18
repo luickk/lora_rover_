@@ -214,3 +214,5 @@ target_link_libraries(lora_c ${catkin_LIBRARIES})
 
 target_link_libraries(lora_c "-L/usr/lib/" bcm2835)
 target_link_libraries(lora_c "-L/usr/lib/" wiringPi)
+target_link_libraries (lora_c "-L/usr/lib/" raspicam)
+target_link_libraries(lora_c ${OpenCV_LIBS})

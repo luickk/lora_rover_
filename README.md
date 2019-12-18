@@ -6,12 +6,16 @@ The system consists of multiple units, the rover itself, a [basestation](https:/
 
 ## LoRa Protocol
 
+### LoRa 
 LoRa is a low freq. high range protocol, which is designed to be used with IOT devices which don't require high bandwith.
+
+### Rover based communication
+
+The rover communicates with the basestation at half duplex and in a two second interval. That is due to the lack of a quartz on the LoRa module, so the timing has to be done on the cpu of the raspberry and can't be overcome. But as a positive side effect it helps with battery life.
 
 ## LoRa Rover control
 
-The rover can be controlled by sending control strings containing coordinates to the rover, the rover the drives to the given location.
-The driving behaviour is linear and as such needs to be driven with a very short distance between waypoints.
+The rover can be controlled by sending control strings containing coordinates to the rover, the rover then the drives to the given location. The driving behaviour is linear, so the rover does not drive any curves or corrects it's course, which is mostly due to the lack of accurate GPS data. As a result the rover needs to be driven with a very short distance between the single waypoints.
 
 ## LoRa Rover Image transmission
 
@@ -24,10 +28,10 @@ The image is transmitted in a very low resolution since the LMIC lib limits the 
 - comp_node <br>
   compass node, handling and publishing incoming i2C compass data
 - driving_node <br>
-  providing services for basic robot movements
+  providing services for basic robot movements, such as drving forward or turning the rover
 - gps_nav_node <br>
   providing services for gps & compass dependent movements
 - gps_node <br>
   handling & proccessing, publishing incoming serial gps data
 - lora_node <br>
-  providing and interface for communication and houses img transmission
+  providing and interface for communication, houses img transmission code

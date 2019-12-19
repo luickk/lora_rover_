@@ -183,7 +183,13 @@ static void rx_func (osjob_t* job) {
         //extract the image in rgb format
         Camera.retrieve (data,raspicam::RASPICAM_FORMAT_RGB );//get camera ima
 
-        //cv::resize(data, cv::Size(70, 70));
+        cv::Mat mat_data = cv::Mat(70,70,CV_8UC3,data);
+
+        cv::resize(mat_data, mat_data, cv::Size(70, 70));
+
+        memcpy(image_buffer, mat_data.data, sizeof(data));
+
+
 
         // TODO delete data array pointer from heap
 

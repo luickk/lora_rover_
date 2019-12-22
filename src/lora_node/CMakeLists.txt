@@ -215,6 +215,10 @@ target_link_libraries(lora_c ${catkin_LIBRARIES})
 target_link_libraries(lora_c "-L/usr/lib/" bcm2835)
 target_link_libraries(lora_c "-L/usr/lib/" wiringPi)
 target_link_libraries (lora_c "-L/usr/lib/" raspicam)
+target_link_libraries (lora_c "-L/usr/lib/" raspicam_cv)
+
 # due to opencv 4 linking issues
 target_link_libraries(lora_c "-L/usr/local/lib/" opencv_core)
 target_link_libraries(lora_c "-L/usr/local/lib/" opencv_imgproc)
+target_link_libraries(lora_c "-L/usr/local/lib/" opencv_imgcodecs)
+target_link_libraries(lora_c "-L/usr/local/lib/" opencv_highgui)

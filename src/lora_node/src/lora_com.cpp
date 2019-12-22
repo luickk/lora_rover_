@@ -1,5 +1,7 @@
 #include <raspicam/raspicam.h>
+#include <raspicam/raspicam_cv.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "ros/ros.h"
 
@@ -168,34 +170,33 @@ static void rx_func (osjob_t* job) {
     {
       tx_mode = "tx_img";
 
-      raspicam::RaspiCam Camera; //Camera object
+      raspicam::RaspiCam_Cv Camera; //Camera object
       //Open camera
       std::cout<<"Opening Camera to take an img..."<<std::endl;
+      Camera.set(CV_CPU_POPCNT, CV_8UC1);
       if ( !Camera.open()) {std::cerr<<"Error opening camera"<<std::endl;
       } else
       {
+        cv::Mat mat_data;
+
         //wait a while until camera stabilizes
         sleep(3);
+
         //capture
         Camera.grab();
-        //allocate memory
-        unsigned char *data=new unsigned char[  Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
+
         //extract the image in rgb format
-        Camera.retrieve (data,raspicam::RASPICAM_FORMAT_RGB );//get camera ima
+        Camera.retrieve (mat_data); //get img
 
-        cv::Mat mat_data = cv::Mat(70,70,CV_8UC3,data);
+        cv::resize(mat_data, mat_data, cv::Size(70, 70), cv::INTER_AREA);
 
-        cv::resize(mat_data, mat_data, cv::Size(70, 70));
-
-        memcpy(image_buffer, mat_data.data, sizeof(data));
-
-
-
-        // TODO delete data array pointer from heap
+        memcpy(image_buffer, mat_data.data, 70*70);
+        cv::imwrite("/home/pi/lora_rover/3.png", cv::Mat(70,70,CV_8UC1, image_buffer));
 
         // for testing purposes
         //memset(image_buffer, 255, sizeof(image_buffer));
 
+        Camera.release();
       }
 
     }

@@ -115,12 +115,6 @@ static void rx_func (osjob_t* job) {
   // next TX
   os_setTimedCallback(&txjob, os_getTime() + ms2osticks(TX_INTERVAL/2), tx_func);
 
-  // Serial.print("Got ");
-  // Serial.print(LMIC.dataLen);
-  // Serial.println(" bytes");
-  // Serial.write(LMIC.frame, LMIC.dataLen);
-  // Serial.println();
-
   std::string data_tx(reinterpret_cast< char const* >(LMIC.frame));
   data_tx = data_tx.substr(0,LMIC.dataLen);
 
@@ -276,25 +270,20 @@ static void tx_func (osjob_t* job)
 
       ROS_INFO("Image transmission in %d steps with size %d, at interval %d ", intervals, bytesize, image_tx_interval);
 
-      char data[image_tx_size+1];
+      char img_tx_data[image_tx_size];
 
-      //memcpy(data, image_buffer+image_tx_size*image_tx_size, image_tx_size);
+      //memcpy(img_tx_data, image_buffer+image_tx_size*image_tx_size, image_tx_size);
       for(int i=0; i<image_tx_size; i++)
       {
-        data[i] = image_buffer[image_tx_interval*image_tx_size+i];
+        img_tx_data[i] = image_buffer[image_tx_interval*image_tx_size+i];
       }
 
       // adding null termination byte
-      data[image_tx_size+1] = '\n';
+      // img_tx_data[image_tx_size+1] = '\n';
 
-      ROS_INFO("Transmitting img, with frame size %d", sizeof(data)/sizeof(data[0]), image_tx_interval);
+      ROS_INFO("Transmitting img, with frame size %d", sizeof(img_tx_data)/sizeof(img_tx_data[0]), image_tx_interval);
 
-      // for(int i=0; i<sizeof(data)/sizeof(data[0]); i++)
-      // {
-      //   printf("data char: %d \n", data[i]);
-      // }
-
-      tx(data, txdone_func);
+      tx(img_tx_data, txdone_func);
       image_tx_interval++;
     }
   }
